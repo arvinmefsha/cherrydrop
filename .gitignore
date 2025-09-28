@@ -53,8 +53,11 @@ logs/
 *.log
 
 # Environment variables
+.env
 .env.local
 .env.production
+backend/.env
+*/.env
 
 # Temporary files
 tmp/
@@ -84,3 +87,5 @@ coverage.xml
 
 # Project specific
 # Add any project-specific files to ignore here
+backend/.env
+.env
