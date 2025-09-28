@@ -41,3 +41,7 @@ async def health_check():
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(orders.router, prefix="/api/orders", tags=["orders"])
 app.include_router(establishments.router, prefix="/api/establishments", tags=["establishments"])
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

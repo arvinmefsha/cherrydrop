@@ -8,6 +8,7 @@ class OwlHacksDeliveryApp {
         this.currentLocation = null;
         this.selectedEstablishment = null;
         this.orderItems = [];
+        this.refreshInterval = null;
         
         this.init();
     }
@@ -128,6 +129,7 @@ class OwlHacksDeliveryApp {
                 this.updateUserInfo();
                 this.loadEstablishments();
                 this.loadMyOrders();
+                this.startAutoRefresh();
             } else {
                 this.logout();
             }
@@ -140,7 +142,35 @@ class OwlHacksDeliveryApp {
         this.token = null;
         this.currentUser = null;
         localStorage.removeItem('token');
+        this.stopAutoRefresh();
         this.showAuthScreen();
+    }
+
+    startAutoRefresh() {
+        // Clear any existing interval first
+        this.stopAutoRefresh();
+        
+        // Set up auto-refresh every 10 seconds
+        this.refreshInterval = setInterval(() => {
+            if (this.currentUser) {
+                console.log('Auto-refreshing orders...');
+                this.loadMyOrders();
+                // Also refresh deliveries if we're on that tab
+                if (document.getElementById('myDeliveriesTab').classList.contains('border-temple-red')) {
+                    this.loadMyDeliveries();
+                }
+            }
+        }, 10000);
+        
+        console.log('Auto-refresh started (10 second intervals)');
+    }
+
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+            console.log('Auto-refresh stopped');
+        }
     }
 
     // UI Navigation Methods
@@ -586,7 +616,7 @@ class OwlHacksDeliveryApp {
         
         if (isAvailable) {
             actionButtons = `
-                <button onclick="app.acceptOrder('${order.id}')" 
+                <button onclick="app.acceptOrder('${order._id}')" 
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
                     Accept Order (+${order.delivery_points} points)
                 </button>
@@ -594,15 +624,15 @@ class OwlHacksDeliveryApp {
         } else if (isMyDelivery) {
             if (order.status === 'accepted') {
                 actionButtons = `
-                    <button onclick="app.updateOrderStatus('${order.id}', 'picked_up')" 
+                    <button onclick="app.updateOrderStatus('${order._id}', 'picked_up')" 
                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md mr-2">
                         Mark as Picked Up
                     </button>
                 `;
             } else if (order.status === 'picked_up') {
                 actionButtons = `
-                    <input type="file" id="completionImage-${order.id}" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('completionImage-${order.id}').click()" 
+                    <input type="file" id="completionImage-${order._id}" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('completionImage-${order._id}').click()" 
                         class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md mr-2">
                         Upload Photo & Complete
                     </button>
@@ -610,26 +640,45 @@ class OwlHacksDeliveryApp {
                 
                 // Add event listener for file upload
                 setTimeout(() => {
-                    const fileInput = document.getElementById(`completionImage-${order.id}`);
+                    const fileInput = document.getElementById(`completionImage-${order._id}`);
                     if (fileInput) {
                         fileInput.addEventListener('change', (e) => {
                             if (e.target.files[0]) {
-                                this.uploadCompletionImage(order.id, e.target.files[0]);
+                                this.uploadCompletionImage(order._id, e.target.files[0]);
                             }
                         });
                     }
                 }, 100);
             }
         } else if (isMyOrder && order.status === 'delivered' && order.completion_image_url) {
+            console.log('DEBUG: Showing completion button with photo for order:', order._id);
             actionButtons = `
                 <button onclick="app.viewCompletionImage('${order.completion_image_url}')" 
                     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md mr-2">
                     View Photo
                 </button>
-                <button onclick="app.completeOrder('${order.id}')" 
+                <button onclick="app.completeOrder('${order._id}')" 
                     class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
                     Confirm Received
                 </button>
+            `;
+        } else if (isMyOrder && order.status === 'delivered') {
+            // Show complete button even without image for testing
+            console.log('DEBUG: Showing completion button without photo for order:', order._id);
+            actionButtons = `
+                <button onclick="app.completeOrder('${order._id}')" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md">
+                    Confirm Received (No Photo)
+                </button>
+            `;
+        } else if (isMyOrder) {
+            // Debug: Show what status we have
+            console.log('DEBUG: My order with status:', order.status, 'Order:', order._id);
+            actionButtons = `
+                <div class="text-sm text-gray-600">
+                    Order Status: ${order.status} | My Order: ${isMyOrder} | Has Photo: ${!!order.completion_image_url}
+                    <br>Order ID: ${order._id}
+                </div>
             `;
         }
 
@@ -640,7 +689,7 @@ class OwlHacksDeliveryApp {
                         ${order.status.replace('_', ' ').toUpperCase()}
                     </span>
                     <div class="text-sm text-gray-500 mt-1">
-                        Order #${order.id.slice(-8)}
+                        Order #${order._id.slice(-8)}
                     </div>
                 </div>
                 <div class="text-right">
@@ -754,6 +803,7 @@ class OwlHacksDeliveryApp {
     }
 
     async completeOrder(orderId) {
+        console.log('DEBUG: completeOrder called for order:', orderId);
         try {
             this.showLoading(true);
             const response = await fetch(`${this.baseURL}/orders/${orderId}/complete`, {
@@ -763,15 +813,21 @@ class OwlHacksDeliveryApp {
                 },
             });
 
+            console.log('DEBUG: Complete order response status:', response.status);
+            
             if (response.ok) {
+                const result = await response.json();
+                console.log('DEBUG: Complete order success:', result);
                 this.showAlert('Order completed! Points transferred.', 'success');
                 this.loadMyOrders();
                 await this.loadCurrentUser(); // Refresh user points
             } else {
                 const error = await response.json();
+                console.log('DEBUG: Complete order error:', error);
                 this.showAlert(error.detail || 'Failed to complete order', 'error');
             }
         } catch (error) {
+            console.log('DEBUG: Complete order exception:', error);
             this.showAlert('Failed to complete order', 'error');
         } finally {
             this.showLoading(false);

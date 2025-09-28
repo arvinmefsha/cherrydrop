@@ -23,7 +23,15 @@ async def create_order(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Insufficient points for this delivery"
         )
-    
+
+    # Deduct points from customer when placing order
+    print(f"DEBUG: Deducting {order_data.delivery_points} points from customer {current_user.email}")
+    await db.users.update_one(
+        {"_id": ObjectId(current_user.id)},
+        {"$inc": {"points": -order_data.delivery_points}}
+    )
+    print(f"DEBUG: Points deducted successfully")
+
     # Verify establishment exists
     if not ObjectId.is_valid(order_data.establishment_id):
         raise HTTPException(
@@ -203,6 +211,7 @@ async def complete_order(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Complete an order (customer confirms receipt)"""
+    print(f"DEBUG: Complete order called by {current_user.email} for order {order_id}")
     if not ObjectId.is_valid(order_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -230,22 +239,17 @@ async def complete_order(
             detail="Order must be delivered before completion"
         )
     
-    # Transfer points
-    customer_id = ObjectId(order["customer_id"])
+    # Transfer points to deliverer (customer already paid when placing order)
     deliverer_id = ObjectId(order["deliverer_id"])
     points = order["delivery_points"]
     
-    # Deduct points from customer
-    await db.users.update_one(
-        {"_id": customer_id},
-        {"$inc": {"points": -points}}
-    )
-    
+    print(f"DEBUG: Transferring {points} points to deliverer {order['deliverer_id']}")
     # Add points to deliverer
     await db.users.update_one(
         {"_id": deliverer_id},
         {"$inc": {"points": points}}
     )
+    print(f"DEBUG: Points transferred successfully")
     
     # Mark order as completed
     from datetime import datetime
