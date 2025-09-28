@@ -11,10 +11,13 @@ import re
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT settings
-SECRET_KEY = config("SECRET_KEY", default="fallback-secret-key")
-ALGORITHM = config("ALGORITHM", default="HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(config("ACCESS_TOKEN_EXPIRE_MINUTES", default="30"))
+# JWT settings - Use environment variables directly
+import os
+
+# Load from environment or use defaults
+SECRET_KEY = os.environ.get("SECRET_KEY", "oAjF8gG618uiqvAOft0o_J3_antPMd_mjjxrpk7cKXlK2a2x58-lu4r2LC0cM3U1")
+ALGORITHM = os.environ.get("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Security scheme
 security = HTTPBearer()
@@ -23,6 +26,10 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
+    # Truncate password if longer than 72 bytes for bcrypt compatibility
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        password = password_bytes[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
 def validate_temple_email(email: str) -> bool:
@@ -66,15 +73,28 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        print(f"DEBUG: Received token: {credentials.credentials[:50]}...")  # Only show first 50 chars
+        print(f"DEBUG: SECRET_KEY configured: {SECRET_KEY[:10]}...")  # Only show first 10 chars
+        print(f"DEBUG: ALGORITHM: {ALGORITHM}")
+        
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        print(f"DEBUG: Decoded payload: {payload}")
+        
         email: str = payload.get("sub")
         if email is None:
+            print("DEBUG: No 'sub' field in token payload")
             raise credentials_exception
+        
+        print(f"DEBUG: Email from token: {email}")
         token_data = TokenData(email=email)
-    except JWTError:
+    except JWTError as e:
+        print(f"DEBUG: JWT decode error: {e}")
         raise credentials_exception
     
     user = await get_user_by_email(email=token_data.email)
     if user is None:
+        print(f"DEBUG: User not found in database: {token_data.email}")
         raise credentials_exception
+    
+    print(f"DEBUG: User authenticated successfully: {user.email}")
     return user

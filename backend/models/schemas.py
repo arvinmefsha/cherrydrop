@@ -22,7 +22,7 @@ class UserBase(BaseModel):
     points: int = Field(default=100)  # Starting points
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=6, max_length=72)
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -54,6 +54,7 @@ class Establishment(BaseModel):
     location: Location
     image_url: Optional[str] = None
     is_active: bool = True
+    distance: Optional[float] = None  # Distance in miles from user location
 
     model_config = ConfigDict(
         populate_by_name=True,

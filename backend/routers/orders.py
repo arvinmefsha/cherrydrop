@@ -50,7 +50,9 @@ async def create_order(
     }
     
     result = await db.orders.insert_one(order_dict)
-    order_dict["_id"] = result.inserted_id
+    order_dict["id"] = str(result.inserted_id)  # Convert ObjectId to string and rename to id
+    if "_id" in order_dict:
+        del order_dict["_id"]  # Remove the _id field
     
     return Order(**order_dict)
 
@@ -68,6 +70,9 @@ async def get_my_orders(
     
     orders = []
     async for order in db.orders.find(filter_query).sort("created_at", -1):
+        order["id"] = str(order["_id"])  # Convert ObjectId to string and rename to id
+        del order["_id"]  # Remove the _id field
+        print(f"DEBUG: My order after conversion: {order.get('id')}")
         orders.append(Order(**order))
     
     return orders
@@ -82,6 +87,8 @@ async def get_available_orders(current_user: UserResponse = Depends(get_current_
         "status": OrderStatus.PENDING,
         "customer_id": {"$ne": str(current_user.id)}
     }).sort("created_at", 1):
+        order["id"] = str(order["_id"])  # Convert ObjectId to string and rename to id
+        del order["_id"]  # Remove the _id field
         orders.append(Order(**order))
     
     return orders
@@ -96,6 +103,8 @@ async def get_delivering_orders(current_user: UserResponse = Depends(get_current
         "deliverer_id": str(current_user.id),
         "status": {"$in": [OrderStatus.ACCEPTED, OrderStatus.PICKED_UP]}
     }).sort("accepted_at", 1):
+        order["id"] = str(order["_id"])  # Convert ObjectId to string and rename to id
+        del order["_id"]  # Remove the _id field
         orders.append(Order(**order))
     
     return orders
