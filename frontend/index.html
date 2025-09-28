@@ -177,28 +177,11 @@
                                     <!-- Order items will be added here -->
                                 </div>
 
-                                <!-- Add Item Form -->
+                                <!-- Menu Items -->
                                 <div class="border-t pt-4 mb-6">
-                                    <h4 class="font-semibold mb-3">Add Item</h4>
-                                    <div class="space-y-3">
-                                        <input type="text" id="itemName" 
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                            placeholder="Item name">
-                                        <div class="flex space-x-2">
-                                            <input type="number" id="itemQuantity" 
-                                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md" 
-                                                placeholder="Qty" min="1" value="1">
-                                            <input type="number" id="itemPrice" 
-                                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md" 
-                                                placeholder="Price" step="0.01">
-                                        </div>
-                                        <input type="text" id="itemNotes" 
-                                            class="w-full px-3 py-2 border border-gray-300 rounded-md" 
-                                            placeholder="Special notes (optional)">
-                                        <button id="addItemBtn" 
-                                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md">
-                                            Add Item
-                                        </button>
+                                    <h4 class="font-semibold mb-3">Menu</h4>
+                                    <div id="menuItemsList" class="space-y-2 max-h-96 overflow-y-auto">
+                                        <!-- Menu items will be loaded here -->
                                     </div>
                                 </div>
 

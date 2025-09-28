@@ -42,7 +42,7 @@ class OwlHacksDeliveryApp {
         document.getElementById('establishmentSearch').addEventListener('input', (e) => this.searchEstablishments(e.target.value));
 
         // Order form listeners
-        document.getElementById('addItemBtn').addEventListener('click', () => this.addOrderItem());
+        // Menu-based ordering - no manual add item button needed
         document.getElementById('requestDeliveryBtn').addEventListener('click', () => this.requestDelivery());
     }
 
@@ -335,36 +335,111 @@ class OwlHacksDeliveryApp {
         });
     }
 
-    selectEstablishment(establishment) {
+    async selectEstablishment(establishment) {
         this.selectedEstablishment = establishment;
         this.orderItems = [];
+        this.menuItems = [];
+        
+        // Load menu items for this establishment
+        try {
+            const response = await fetch(`${this.baseURL}/establishments/${establishment._id}/menu`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                },
+            });
+            
+            if (response.ok) {
+                this.menuItems = await response.json();
+            } else {
+                console.log('No menu found for establishment');
+                this.menuItems = [];
+            }
+        } catch (error) {
+            console.log('Error loading menu:', error);
+            this.menuItems = [];
+        }
+        
         this.renderOrderSidebar();
+        this.renderMenuItems();
         document.getElementById('selectedEstablishmentName').textContent = establishment.name;
         document.getElementById('orderSidebar').classList.remove('hidden');
     }
 
     // Order Management Methods
-    addOrderItem() {
-        const name = document.getElementById('itemName').value.trim();
-        const quantity = parseInt(document.getElementById('itemQuantity').value) || 1;
-        const price = parseFloat(document.getElementById('itemPrice').value) || 0;
-        const notes = document.getElementById('itemNotes').value.trim();
+    renderMenuItems() {
+        const container = document.getElementById('menuItemsList');
+        container.innerHTML = '';
 
-        if (!name || price <= 0) {
-            this.showAlert('Please enter valid item details', 'error');
+        if (!this.menuItems || this.menuItems.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-sm">No menu available</p>';
             return;
         }
 
-        const item = { name, quantity, price, notes };
-        this.orderItems.push(item);
+        // Group menu items by category
+        const categories = {};
+        this.menuItems.forEach(item => {
+            if (!categories[item.category]) {
+                categories[item.category] = [];
+            }
+            categories[item.category].push(item);
+        });
 
-        // Clear form
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemQuantity').value = '1';
-        document.getElementById('itemPrice').value = '';
-        document.getElementById('itemNotes').value = '';
+        // Render each category
+        Object.keys(categories).forEach(category => {
+            const categoryElement = document.createElement('div');
+            categoryElement.className = 'mb-4';
+            categoryElement.innerHTML = `
+                <h5 class="font-medium text-gray-700 mb-2 border-b pb-1">${category}</h5>
+            `;
+            
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = 'space-y-1';
+            
+            categories[category].forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex justify-between items-center p-2 hover:bg-gray-50 rounded cursor-pointer border';
+                itemElement.innerHTML = `
+                    <div>
+                        <div class="font-medium text-sm">${item.name}</div>
+                        <div class="text-xs text-gray-500">$${item.price.toFixed(2)}</div>
+                    </div>
+                    <button class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+                        Add
+                    </button>
+                `;
+                
+                const addButton = itemElement.querySelector('button');
+                addButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.addMenuItemToOrder(item);
+                });
+                
+                itemsContainer.appendChild(itemElement);
+            });
+            
+            categoryElement.appendChild(itemsContainer);
+            container.appendChild(categoryElement);
+        });
+    }
 
+    addMenuItemToOrder(menuItem) {
+        // Check if item already exists in order
+        const existingItem = this.orderItems.find(item => item.name === menuItem.name);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            const item = {
+                name: menuItem.name,
+                quantity: 1,
+                price: menuItem.price,
+                notes: ''
+            };
+            this.orderItems.push(item);
+        }
+        
         this.renderOrderSidebar();
+        this.showAlert(`Added ${menuItem.name} to order`, 'success');
     }
 
     renderOrderSidebar() {
@@ -382,8 +457,15 @@ class OwlHacksDeliveryApp {
             itemElement.innerHTML = `
                 <div class="flex-1">
                     <div class="font-medium">${item.name}</div>
-                    <div class="text-sm text-gray-600">Qty: ${item.quantity} × $${item.price.toFixed(2)}</div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        <div class="flex items-center space-x-2">
+                            <button class="text-red-500 hover:text-red-700 w-6 h-6 flex items-center justify-center border border-gray-300 rounded" onclick="app.updateItemQuantity(${index}, -1)">-</button>
+                            <span>Qty: ${item.quantity} × $${item.price.toFixed(2)}</span>
+                            <button class="text-green-500 hover:text-green-700 w-6 h-6 flex items-center justify-center border border-gray-300 rounded" onclick="app.updateItemQuantity(${index}, 1)">+</button>
+                        </div>
+                    </div>
                     ${item.notes ? `<div class="text-sm text-gray-500">${item.notes}</div>` : ''}
+                    <button class="text-blue-500 hover:text-blue-700 text-xs" onclick="app.addItemNotes(${index})">Add Notes</button>
                 </div>
                 <div class="text-right">
                     <div class="font-medium">$${itemTotal.toFixed(2)}</div>
@@ -413,6 +495,27 @@ class OwlHacksDeliveryApp {
     removeOrderItem(index) {
         this.orderItems.splice(index, 1);
         this.renderOrderSidebar();
+    }
+
+    updateItemQuantity(index, change) {
+        const item = this.orderItems[index];
+        item.quantity += change;
+        
+        if (item.quantity <= 0) {
+            this.removeOrderItem(index);
+        } else {
+            this.renderOrderSidebar();
+        }
+    }
+
+    addItemNotes(index) {
+        const item = this.orderItems[index];
+        const notes = prompt(`Add notes for ${item.name}:`, item.notes || '');
+        
+        if (notes !== null) {
+            item.notes = notes.trim();
+            this.renderOrderSidebar();
+        }
     }
 
     async requestDelivery() {

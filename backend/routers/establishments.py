@@ -10,37 +10,58 @@ router = APIRouter()
 # Hardcoded establishments near Temple University campus
 TEMPLE_ESTABLISHMENTS = [
     {
-        "name": "Subway",
-        "category": "Fast Food",
+        "name": "Honey Truck",
+        "category": "Food Truck",
         "location": {
-            "latitude": 39.9811,
-            "longitude": -75.1540,
-            "address": "1838 N Broad St, Philadelphia, PA 19122"
+            "latitude": 39.9805,
+            "longitude": -75.1545,
+            "address": "12 th &, W Norris St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=1",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/honeytruck.jpeg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Avocado Wrap", "price": 10.51, "category": "Sandwiches"},
+            {"name": "Curry Bowl", "price": 9.99, "category": "Bowls"},
+            {"name": "Chicken Sandwich", "price": 8.99, "category": "Sandwiches"},
+        ]
     },
     {
-        "name": "Chipotle Mexican Grill",
-        "category": "Fast Casual",
+        "name": "Temple Teppanyaki",
+        "category": "Japanese and Korean",
         "location": {
             "latitude": 39.9805,
             "longitude": -75.1545,
             "address": "1840 N Broad St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=2",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/templeteppanyaki.jpeg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Chicken Teppanyaki", "price": 10.00, "category": "Plates"},
+            {"name": "Chicken Rice Bowl", "price": 9.50, "category": "Bowls"},
+            {"name": "Shrimp Teppanyaki", "price": 10.00, "category": "Plates"},
+            {"name": "Veggie Teppanyaki", "price": 10.00, "category": "Plates"},
+            {"name": "Beef Rice Bowl", "price": 9.50, "category": "Bowls"},
+            {"name": "Fried Shrimp", "price": 10.00, "category": "Sides"}
+        ]
     },
     {
-        "name": "Wawa",
+        "name": "7-Eleven",
         "category": "Convenience Store",
         "location": {
             "latitude": 39.9820,
             "longitude": -75.1535,
             "address": "1835 N Broad St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=3",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/7-eleven 2.jpeg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Classic Hoagie", "price": 8.99, "category": "Hoagies"},
+            {"name": "Buffalo Chicken Mac & Cheese Bowl", "price": 7.49, "category": "Hot Foods"},
+            {"name": "Chicken Caesar Salad", "price": 8.99, "category": "Salads"},
+            {"name": "Coffee (Medium)", "price": 1.89, "category": "Beverages"},
+            {"name": "Soft Pretzel", "price": 1.29, "category": "Snacks"},
+            {"name": "Energy Drink", "price": 3.49, "category": "Beverages"}
+        ]
     },
     {
         "name": "McDonald's",
@@ -50,8 +71,16 @@ TEMPLE_ESTABLISHMENTS = [
             "longitude": -75.1550,
             "address": "1801 N Broad St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=4",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/mcdonalds.jpg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Big Mac", "price": 6.49, "category": "Burgers"},
+            {"name": "Quarter Pounder with Cheese", "price": 7.79, "category": "Burgers"},
+            {"name": "10 Piece McNuggets", "price": 5.99, "category": "Chicken"},
+            {"name": "Large Fries", "price": 3.79, "category": "Sides"},
+            {"name": "McFlurry", "price": 4.39, "category": "Desserts"},
+            {"name": "Medium Coke", "price": 1.00, "category": "Beverages"}
+        ]
     },
     {
         "name": "Starbucks",
@@ -61,8 +90,16 @@ TEMPLE_ESTABLISHMENTS = [
             "longitude": -75.1525,
             "address": "1900 N 12th St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=5",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/starbucks.jpeg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Grande Pike Place Roast", "price": 2.85, "category": "Hot Coffee"},
+            {"name": "Venti Iced Caramel Macchiato", "price": 5.95, "category": "Cold Coffee"},
+            {"name": "Grande Chai Tea Latte", "price": 4.95, "category": "Tea"},
+            {"name": "Bacon, Gouda & Egg Sandwich", "price": 5.45, "category": "Food"},
+            {"name": "Blueberry Muffin", "price": 3.25, "category": "Pastries"},
+            {"name": "Cake Pop", "price": 2.25, "category": "Treats"}
+        ]
     },
     {
         "name": "Dunkin'",
@@ -72,8 +109,16 @@ TEMPLE_ESTABLISHMENTS = [
             "longitude": -75.1560,
             "address": "1700 N Broad St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=6",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/dunkin.jpg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Medium Original Blend Coffee", "price": 2.29, "category": "Hot Coffee"},
+            {"name": "Large Iced Caramel Latte", "price": 4.59, "category": "Cold Coffee"},
+            {"name": "Boston Kreme Donut", "price": 1.59, "category": "Donuts"},
+            {"name": "Everything Bagel with Cream Cheese", "price": 3.49, "category": "Bagels"},
+            {"name": "Sausage, Egg & Cheese on Croissant", "price": 5.29, "category": "Breakfast"},
+            {"name": "Hash Browns", "price": 2.49, "category": "Sides"}
+        ]
     },
     {
         "name": "Halal Guys",
@@ -83,8 +128,16 @@ TEMPLE_ESTABLISHMENTS = [
             "longitude": -75.1530,
             "address": "1850 N Broad St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=7",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/halalguys.jpeg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "Chicken & Rice Platter", "price": 9.99, "category": "Platters"},
+            {"name": "Lamb & Rice Platter", "price": 11.99, "category": "Platters"},
+            {"name": "Mixed Platter (Chicken & Lamb)", "price": 12.99, "category": "Platters"},
+            {"name": "Chicken Gyro", "price": 7.99, "category": "Gyros"},
+            {"name": "Falafel Platter", "price": 8.99, "category": "Vegetarian"},
+            {"name": "Baklava", "price": 3.99, "category": "Desserts"}
+        ]
     },
     {
         "name": "Popeyes Louisiana Kitchen",
@@ -94,8 +147,16 @@ TEMPLE_ESTABLISHMENTS = [
             "longitude": -75.1555,
             "address": "1750 N Broad St, Philadelphia, PA 19122"
         },
-        "image_url": "https://picsum.photos/300/200?random=8",
-        "is_active": True
+        "image_url": "http://localhost:3000/images/popeyes.jpg",
+        "is_active": True,
+        "menu_items": [
+            {"name": "3 Piece Chicken Tenders", "price": 8.99, "category": "Chicken"},
+            {"name": "Spicy Chicken Sandwich", "price": 6.99, "category": "Sandwiches"},
+            {"name": "8 Piece Family Meal", "price": 19.99, "category": "Family Meals"},
+            {"name": "Large Red Beans & Rice", "price": 4.49, "category": "Sides"},
+            {"name": "Biscuit", "price": 1.79, "category": "Sides"},
+            {"name": "Sweet Tea (Large)", "price": 2.49, "category": "Beverages"}
+        ]
     }
 ]
 
@@ -125,10 +186,11 @@ async def get_establishments(
     """Get all establishments, optionally sorted by distance"""
     db = await get_database()
     
-    # Check if establishments exist in database, if not, populate them
-    count = await db.establishments.count_documents({})
-    if count == 0:
-        await db.establishments.insert_many(TEMPLE_ESTABLISHMENTS)
+    # Force refresh establishments to match current template
+    # Clear all existing establishments and insert fresh ones
+    await db.establishments.delete_many({})
+    await db.establishments.insert_many(TEMPLE_ESTABLISHMENTS)
+    print(f"DEBUG: Refreshed {len(TEMPLE_ESTABLISHMENTS)} establishments in database")
     
     # Get establishments from database
     establishments = []
@@ -213,3 +275,35 @@ async def get_establishment(
     
     establishment["_id"] = str(establishment["_id"])  # Convert ObjectId to string
     return Establishment(**establishment)
+
+@router.get("/{establishment_id}/menu")
+async def get_establishment_menu(
+    establishment_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get menu items for a specific establishment"""
+    from bson import ObjectId
+    
+    if not ObjectId.is_valid(establishment_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid establishment ID format"
+        )
+    
+    db = await get_database()
+    establishment = await db.establishments.find_one({"_id": ObjectId(establishment_id)})
+    
+    print(f"DEBUG: Looking for establishment ID: {establishment_id}")
+    print(f"DEBUG: Found establishment: {establishment is not None}")
+    
+    if not establishment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Establishment not found"
+        )
+    
+    menu_items = establishment.get("menu_items", [])
+    print(f"DEBUG: Menu items count: {len(menu_items)}")
+    
+    # Return menu items if they exist, otherwise empty list
+    return menu_items
