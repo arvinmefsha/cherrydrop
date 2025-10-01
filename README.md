@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="440" height="440" alt="Screenshot 2025-09-29 at 3 41 32 PM" src="https://github.com/user-attachments/assets/956cb3ca-791d-4415-b370-b9ad9a1aafb6" />
+</p>
+
 ## Cherry Drop
 _Door to Door, Friend to Friend_
 
